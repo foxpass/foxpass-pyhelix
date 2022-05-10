@@ -39,7 +39,6 @@ class DataAccessor(object):
             node = data
             if data and convert:
                 node = json.dumps(data, ensure_ascii=True) #, indent=2, sort_keys=True)
-            logging.info('creating {0} with {1}'.format(path, data))
             if data and convert:
                node = bytes(json.dumps(data).strip(), 'utf-8')
             else:
@@ -50,7 +49,6 @@ class DataAccessor(object):
 
             return True
         except kazoo.exceptions.NodeExistsError:
-            logging.warn('{0} exists already'.format(path))
             return self.set(key, node)
         except kazoo.exceptions.KazooException:
             logging.error(path)
@@ -79,7 +77,6 @@ class DataAccessor(object):
         try:
             if not key['update_only_on_exists']:
                 self._client.ensure_path(path)
-            logging.info('setting {0} with {1}'.format(path, data))
             self._client.set(path, data)
             return True
         except kazoo.exceptions.NoNodeError:

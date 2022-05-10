@@ -217,7 +217,6 @@ class Participant(object):
         Returns:
             Always True
         """
-        logging.info('handler called: {0}'.format(messages))
         for cb in self._callbacks:
             message_nodes = []
             for message_id in messages:

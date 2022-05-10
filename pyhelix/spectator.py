@@ -231,7 +231,9 @@ class Spectator(object):
         self._ext_views_cb = cb
 
     def _evs_watcher(self, data, stat):
-        if data:
+        if data is None:
+            return
+        else:
             data = json.loads(data)
         self._ext_views_map[data["id"]] = data['mapFields']
         if self._ext_views_cb:
