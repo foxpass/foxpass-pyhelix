@@ -3,7 +3,6 @@ import logging
 import time
 
 import pyhelix.helixtask as helixtask
-import pyhelix.znode as znode
 
 
 class HelixExecutor(object):
