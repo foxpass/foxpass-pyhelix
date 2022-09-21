@@ -25,6 +25,7 @@ class SpectatorConnection(object):
         self._accessor = accessor.DataAccessor(cluster_id, self._client)
         self._keybuilder = self._accessor.get_key_builder()
         self._spectators = {}
+        self._evs_spectator = None
         self._participants = {}
         self._is_lost = False
 
@@ -73,6 +74,23 @@ class SpectatorConnection(object):
         s = Spectator(self._accessor, resource_id, self._participants)
         self._spectators[resource_id] = s
         return s
+
+    def spectate_evs(self):
+        """
+        Start spectating on a resource.
+
+        Returns:
+            A Spectator object
+        """
+        if not self.is_connected():
+            logging.error("unable to connect to zookeeper to fetch external views")
+            return None
+
+        if self._evs_spectator is not None:
+            return self._evs_spectator
+
+        self._evs_spectator = Spectator(self._accessor, None, self._participants, True)
+        return self._evs_spectator
 
     def get_accessor(self):
         """
@@ -149,7 +167,7 @@ class Spectator(object):
     """
     Helix spectator
     """
-    def __init__(self, accessor, resource_id, participants):
+    def __init__(self, accessor, resource_id, participants, spectate_ext_views=False):
         """
         Initialize a spectator for a resource
 
@@ -164,6 +182,7 @@ class Spectator(object):
         self._accessor = accessor
         self._keybuilder = accessor.get_key_builder()
         self._ext_views_cb = None
+        self.spectate_ext_views = spectate_ext_views
         self._init(resource_id)
 
     def get_participants(self, state, partition_id=None):
@@ -257,8 +276,10 @@ class Spectator(object):
         Args:
             resource_id: The resource to spectate on
         """
-        self._accessor.watch_property(
-            self._keybuilder.external_view(resource_id), self._ev_watcher)
+        if resource_id is not None:
+            self._accessor.watch_property(
+                self._keybuilder.external_view(resource_id), self._ev_watcher)
 
-        self._accessor.watch_children(
-            self._keybuilder.external_views(), self._ext_views_watcher)
+        if self.spectate_ext_views:
+            self._accessor.watch_children(
+                self._keybuilder.external_views(), self._ext_views_watcher)
